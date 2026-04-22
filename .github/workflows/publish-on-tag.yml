@@ -1,0 +1,62 @@
+name: Publish VS Code Extension
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+      - "*.*.*"
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Verify tag matches package version
+        id: version_check
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF_NAME}"
+          TAG_VERSION="${TAG#v}"
+          PACKAGE_VERSION="$(node -p "require('./package.json').version")"
+
+          if [[ "$TAG_VERSION" != "$PACKAGE_VERSION" ]]; then
+            echo "Tag version ($TAG_VERSION) does not match package.json version ($PACKAGE_VERSION)."
+            exit 1
+          fi
+
+          echo "version=$PACKAGE_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Compile extension
+        run: npm run compile
+
+      - name: Package extension
+        run: npm run package
+
+      - name: Upload VSIX artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: terminal-position-toggle-${{ steps.version_check.outputs.version }}
+          path: terminal-position-toggle-${{ steps.version_check.outputs.version }}.vsix
+
+      - name: Publish to Visual Studio Marketplace
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: |
+          npx @vscode/vsce publish \
+            --packagePath "terminal-position-toggle-${{ steps.version_check.outputs.version }}.vsix" \
+            -p "$VSCE_PAT"

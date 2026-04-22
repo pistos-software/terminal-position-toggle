@@ -5,25 +5,42 @@
   "author": "Pistos Software",
   "license": "MIT",
   "publisher": "pistos-software",
+  "homepage": "https://github.com/pistos-software/terminal-position-toggle#readme",
+  "bugs": {
+    "url": "https://github.com/pistos-software/terminal-position-toggle/issues"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/pistos-software/terminal-position-toggle.git"
   },
-  "version": "0.1.0",
+  "version": "0.1.1",
   "engines": {
     "vscode": "^1.85.0"
   },
   "categories": [
-    "Other"
+    "Productivity"
   ],
+  "keywords": [
+    "terminal",
+    "panel",
+    "layout",
+    "workbench",
+    "productivity"
+  ],
+  "icon": "media/icon.png",
   "main": "./out/extension.js",
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "lint": "eslint src"
+    "lint": "eslint src",
+    "package": "npx @vscode/vsce package",
+    "publish:patch": "npx @vscode/vsce publish patch",
+    "publish:minor": "npx @vscode/vsce publish minor",
+    "publish:major": "npx @vscode/vsce publish major"
   },
   "devDependencies": {
+    "@vscode/vsce": "^3.6.2",
     "@types/vscode": "^1.85.0",
     "@types/node": "^20.0.0",
     "typescript": "^5.0.0"
