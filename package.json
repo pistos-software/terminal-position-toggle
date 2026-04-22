@@ -2,6 +2,7 @@
   "name": "terminal-position-toggle",
   "displayName": "Terminal Position Toggle",
   "description": "Quickly move the VS Code terminal panel between right and bottom with shortcuts",
+  "license": "MIT",
   "version": "1.0.0",
   "engines": {
     "vscode": "^1.85.0"
