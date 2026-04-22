@@ -8,7 +8,6 @@ interface PanelSizeState {
 export function activate(context: vscode.ExtensionContext) {
     console.log('Terminal Position Toggle activated');
 
-    let currentPosition: 'bottom' | 'right' = 'bottom';
     let statusBarItem: vscode.StatusBarItem;
 
     // Create status bar item to show current position
@@ -23,7 +22,7 @@ export function activate(context: vscode.ExtensionContext) {
     };
 
     const setPanelSizeState = (state: PanelSizeState) => {
-        context.globalState.update('panelSizeState', state);
+        return context.globalState.update('panelSizeState', state);
     };
 
     const getCurrentPosition = (): 'bottom' | 'right' => {
@@ -33,11 +32,10 @@ export function activate(context: vscode.ExtensionContext) {
 
     const updateStatusBar = () => {
         const position = getCurrentPosition();
-        currentPosition = position;
         statusBarItem.text = `$(arrow-${position === 'right' ? 'right' : 'down'}) Terminal: ${position}`;
     };
 
-    const savePanelSize = (position: 'bottom' | 'right') => {
+    const savePanelSize = async (position: 'bottom' | 'right') => {
         const config = vscode.workspace.getConfiguration('workbench.panel');
         const currentSize = config.get('size');
 
@@ -48,12 +46,12 @@ export function activate(context: vscode.ExtensionContext) {
             } else {
                 state.bottomSize = currentSize;
             }
-            setPanelSizeState(state);
+            await setPanelSizeState(state);
             console.log(`Saved ${position} panel size: ${currentSize}px`);
         }
     };
 
-    const restorePanelSize = (position: 'bottom' | 'right') => {
+    const restorePanelSize = async (position: 'bottom' | 'right') => {
         const state = getPanelSizeState();
         let sizeToRestore: number | undefined;
 
@@ -69,12 +67,12 @@ export function activate(context: vscode.ExtensionContext) {
                 vscode.ConfigurationTarget.Workspace :
                 vscode.ConfigurationTarget.Global;
 
-            config.update('size', sizeToRestore, target);
+            await config.update('size', sizeToRestore, target);
             console.log(`Restored ${position} panel size: ${sizeToRestore}px`);
         }
     };
 
-    const setTerminalPosition = (position: 'bottom' | 'right') => {
+    const setTerminalPosition = async (position: 'bottom' | 'right') => {
         const currentPos = getCurrentPosition();
 
         if (currentPos === position) {
@@ -83,7 +81,7 @@ export function activate(context: vscode.ExtensionContext) {
         }
 
         // Save the size of the position we're leaving
-        savePanelSize(currentPos);
+        await savePanelSize(currentPos);
 
         // Update the panel position
         const config = vscode.workspace.getConfiguration('workbench.panel');
@@ -91,32 +89,39 @@ export function activate(context: vscode.ExtensionContext) {
             vscode.ConfigurationTarget.Workspace :
             vscode.ConfigurationTarget.Global;
 
-        config.update('defaultLocation', position, target);
+        await config.update('defaultLocation', position, target);
+
+        // Move the currently visible panel immediately.
+        if (position === 'right') {
+            await vscode.commands.executeCommand('workbench.action.positionPanelRight');
+        } else {
+            await vscode.commands.executeCommand('workbench.action.positionPanelBottom');
+        }
 
         // Restore the saved size for this position
-        restorePanelSize(position);
+        await restorePanelSize(position);
 
         updateStatusBar();
         vscode.window.showInformationMessage(`Terminal moved to ${position}`);
         console.log(`Terminal position changed to: ${position}`);
     };
 
-    const toggleTerminalPosition = () => {
+    const toggleTerminalPosition = async () => {
         const currentPos = getCurrentPosition();
         const newPos = currentPos === 'right' ? 'bottom' : 'right';
-        setTerminalPosition(newPos);
+        await setTerminalPosition(newPos);
     };
 
     // Register commands
     context.subscriptions.push(
-        vscode.commands.registerCommand('terminalPositionToggle.setRight', () => {
-            setTerminalPosition('right');
+        vscode.commands.registerCommand('terminalPositionToggle.setRight', async () => {
+            await setTerminalPosition('right');
         }),
-        vscode.commands.registerCommand('terminalPositionToggle.setBottom', () => {
-            setTerminalPosition('bottom');
+        vscode.commands.registerCommand('terminalPositionToggle.setBottom', async () => {
+            await setTerminalPosition('bottom');
         }),
-        vscode.commands.registerCommand('terminalPositionToggle.toggle', () => {
-            toggleTerminalPosition();
+        vscode.commands.registerCommand('terminalPositionToggle.toggle', async () => {
+            await toggleTerminalPosition();
         })
     );
 

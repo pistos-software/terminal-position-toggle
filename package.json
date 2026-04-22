@@ -2,12 +2,14 @@
   "name": "terminal-position-toggle",
   "displayName": "Terminal Position Toggle",
   "description": "Quickly move the VS Code terminal panel between right and bottom with shortcuts",
+  "author": "Pistos Software",
   "license": "MIT",
+  "publisher": "pistos-software",
   "repository": {
     "type": "git",
     "url": "https://github.com/pistos-software/terminal-position-toggle.git"
   },
-  "version": "1.0.0",
+  "version": "0.1.0",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -27,34 +29,42 @@
     "typescript": "^5.0.0"
   },
   "activationEvents": [
-    "onStartupFinished"
+    "onStartupFinished",
+    "onCommand:terminalPositionToggle.setRight",
+    "onCommand:terminalPositionToggle.setBottom",
+    "onCommand:terminalPositionToggle.toggle"
   ],
-  "commands": [
-    {
-      "command": "terminalPositionToggle.setRight",
-      "title": "Terminal Position: Move to Right"
-    },
-    {
-      "command": "terminalPositionToggle.setBottom",
-      "title": "Terminal Position: Move to Bottom"
-    },
-    {
-      "command": "terminalPositionToggle.toggle",
-      "title": "Terminal Position: Toggle Right/Bottom"
-    }
-  ],
-  "keybindings": [
-    {
-      "command": "terminalPositionToggle.setRight",
-      "key": "ctrl+shift+alt+r"
-    },
-    {
-      "command": "terminalPositionToggle.setBottom",
-      "key": "ctrl+shift+alt+b"
-    },
-    {
-      "command": "terminalPositionToggle.toggle",
-      "key": "ctrl+shift+alt+t"
-    }
-  ]
+  "contributes": {
+    "commands": [
+      {
+        "command": "terminalPositionToggle.setRight",
+        "title": "Move to Right",
+        "category": "Terminal Position Toggle"
+      },
+      {
+        "command": "terminalPositionToggle.setBottom",
+        "title": "Move to Bottom",
+        "category": "Terminal Position Toggle"
+      },
+      {
+        "command": "terminalPositionToggle.toggle",
+        "title": "Toggle Right/Bottom",
+        "category": "Terminal Position Toggle"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "terminalPositionToggle.setRight",
+        "key": "ctrl+shift+alt+r"
+      },
+      {
+        "command": "terminalPositionToggle.setBottom",
+        "key": "ctrl+shift+alt+b"
+      },
+      {
+        "command": "terminalPositionToggle.toggle",
+        "key": "ctrl+shift+alt+t"
+      }
+    ]
+  }
 }
