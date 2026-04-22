@@ -1,0 +1,55 @@
+{
+  "name": "terminal-position-toggle",
+  "displayName": "Terminal Position Toggle",
+  "description": "Quickly move the VS Code terminal panel between right and bottom with shortcuts",
+  "version": "1.0.0",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./out/extension.js",
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "commands": [
+    {
+      "command": "terminalPositionToggle.setRight",
+      "title": "Terminal Position: Move to Right"
+    },
+    {
+      "command": "terminalPositionToggle.setBottom",
+      "title": "Terminal Position: Move to Bottom"
+    },
+    {
+      "command": "terminalPositionToggle.toggle",
+      "title": "Terminal Position: Toggle Right/Bottom"
+    }
+  ],
+  "keybindings": [
+    {
+      "command": "terminalPositionToggle.setRight",
+      "key": "ctrl+shift+alt+r"
+    },
+    {
+      "command": "terminalPositionToggle.setBottom",
+      "key": "ctrl+shift+alt+b"
+    },
+    {
+      "command": "terminalPositionToggle.toggle",
+      "key": "ctrl+shift+alt+t"
+    }
+  ]
+}

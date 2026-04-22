@@ -1,0 +1,129 @@
+import * as vscode from 'vscode';
+
+interface PanelSizeState {
+    rightSize?: number;
+    bottomSize?: number;
+}
+
+export function activate(context: vscode.ExtensionContext) {
+    console.log('Terminal Position Toggle activated');
+
+    let currentPosition: 'bottom' | 'right' = 'bottom';
+    let statusBarItem: vscode.StatusBarItem;
+
+    // Create status bar item to show current position
+    statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
+    statusBarItem.command = 'terminalPositionToggle.toggle';
+    statusBarItem.tooltip = 'Click to toggle terminal position (or use Ctrl+Shift+Alt+T)';
+    statusBarItem.show();
+    context.subscriptions.push(statusBarItem);
+
+    const getPanelSizeState = (): PanelSizeState => {
+        return context.globalState.get('panelSizeState', {});
+    };
+
+    const setPanelSizeState = (state: PanelSizeState) => {
+        context.globalState.update('panelSizeState', state);
+    };
+
+    const getCurrentPosition = (): 'bottom' | 'right' => {
+        const config = vscode.workspace.getConfiguration('workbench.panel');
+        return (config.get('defaultLocation') as 'bottom' | 'right') || 'bottom';
+    };
+
+    const updateStatusBar = () => {
+        const position = getCurrentPosition();
+        currentPosition = position;
+        statusBarItem.text = `$(arrow-${position === 'right' ? 'right' : 'down'}) Terminal: ${position}`;
+    };
+
+    const savePanelSize = (position: 'bottom' | 'right') => {
+        const config = vscode.workspace.getConfiguration('workbench.panel');
+        const currentSize = config.get('size');
+
+        if (typeof currentSize === 'number' && currentSize > 0) {
+            const state = getPanelSizeState();
+            if (position === 'right') {
+                state.rightSize = currentSize;
+            } else {
+                state.bottomSize = currentSize;
+            }
+            setPanelSizeState(state);
+            console.log(`Saved ${position} panel size: ${currentSize}px`);
+        }
+    };
+
+    const restorePanelSize = (position: 'bottom' | 'right') => {
+        const state = getPanelSizeState();
+        let sizeToRestore: number | undefined;
+
+        if (position === 'right') {
+            sizeToRestore = state.rightSize;
+        } else {
+            sizeToRestore = state.bottomSize;
+        }
+
+        if (sizeToRestore && sizeToRestore > 0) {
+            const config = vscode.workspace.getConfiguration('workbench.panel');
+            const target = vscode.workspace.workspaceFolders ?
+                vscode.ConfigurationTarget.Workspace :
+                vscode.ConfigurationTarget.Global;
+
+            config.update('size', sizeToRestore, target);
+            console.log(`Restored ${position} panel size: ${sizeToRestore}px`);
+        }
+    };
+
+    const setTerminalPosition = (position: 'bottom' | 'right') => {
+        const currentPos = getCurrentPosition();
+
+        if (currentPos === position) {
+            console.log(`Terminal already in ${position} position`);
+            return;
+        }
+
+        // Save the size of the position we're leaving
+        savePanelSize(currentPos);
+
+        // Update the panel position
+        const config = vscode.workspace.getConfiguration('workbench.panel');
+        const target = vscode.workspace.workspaceFolders ?
+            vscode.ConfigurationTarget.Workspace :
+            vscode.ConfigurationTarget.Global;
+
+        config.update('defaultLocation', position, target);
+
+        // Restore the saved size for this position
+        restorePanelSize(position);
+
+        updateStatusBar();
+        vscode.window.showInformationMessage(`Terminal moved to ${position}`);
+        console.log(`Terminal position changed to: ${position}`);
+    };
+
+    const toggleTerminalPosition = () => {
+        const currentPos = getCurrentPosition();
+        const newPos = currentPos === 'right' ? 'bottom' : 'right';
+        setTerminalPosition(newPos);
+    };
+
+    // Register commands
+    context.subscriptions.push(
+        vscode.commands.registerCommand('terminalPositionToggle.setRight', () => {
+            setTerminalPosition('right');
+        }),
+        vscode.commands.registerCommand('terminalPositionToggle.setBottom', () => {
+            setTerminalPosition('bottom');
+        }),
+        vscode.commands.registerCommand('terminalPositionToggle.toggle', () => {
+            toggleTerminalPosition();
+        })
+    );
+
+    // Initialize status bar
+    updateStatusBar();
+}
+
+export function deactivate() {
+    console.log('Terminal Position Toggle deactivated');
+}
